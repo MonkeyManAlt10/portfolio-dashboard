@@ -13,13 +13,40 @@ import {
 import { RothSettings, EnrichedBucket } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
+const RATE_LABELS = ["7%", "9%", "11%"];
+
+// Defined at module level to satisfy react-hooks/static-components
+interface ProjectionTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: number;
+}
+function ProjectionTooltip({ active, payload, label }: ProjectionTooltipProps) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      className="rounded-lg border px-3 py-2 text-sm"
+      style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}
+    >
+      <div className="text-xs text-slate-500 mb-2">Age {label}</div>
+      {payload.map((item) => (
+        <div key={item.name} className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+          <span className="text-slate-400 text-xs">{item.name}</span>
+          <span className="font-mono tabular-nums text-slate-100 text-xs ml-auto">
+            {formatCurrency(item.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface ProjectionChartProps {
   bucket: EnrichedBucket;
   settings: RothSettings;
 }
-
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
-const RATE_LABELS = ["7%", "9%", "11%"];
 
 export default function ProjectionChart({ bucket, settings }: ProjectionChartProps) {
   const currentValue = bucket.totalValue ?? bucket.totalCostBasis;
@@ -45,35 +72,6 @@ export default function ProjectionChart({ bucket, settings }: ProjectionChartPro
     return `$${v}`;
   };
 
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: {
-    active?: boolean;
-    payload?: Array<{ name: string; value: number; color: string }>;
-    label?: number;
-  }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div
-        className="rounded-lg border px-3 py-2 text-sm"
-        style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}
-      >
-        <div className="text-xs text-slate-500 mb-2">Age {label}</div>
-        {payload.map((item) => (
-          <div key={item.name} className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-slate-400 text-xs">{item.name}</span>
-            <span className="font-mono tabular-nums text-slate-100 text-xs ml-auto">
-              {formatCurrency(item.value)}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -92,10 +90,8 @@ export default function ProjectionChart({ bucket, settings }: ProjectionChartPro
           axisLine={false}
           width={55}
         />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend
-          wrapperStyle={{ fontSize: 11, color: "#64748b" }}
-        />
+        <Tooltip content={<ProjectionTooltip />} />
+        <Legend wrapperStyle={{ fontSize: 11, color: "#64748b" }} />
         {settings.projectionRates.map((rate, idx) => (
           <Line
             key={rate}

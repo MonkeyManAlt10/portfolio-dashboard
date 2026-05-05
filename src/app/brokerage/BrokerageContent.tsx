@@ -12,18 +12,27 @@ export default function BrokerageContent() {
   const [portfolio, setPortfolio] = useState<EnrichedPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddBucket, setShowAddBucket] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [newBucket, setNewBucket] = useState({
     id: "", name: "", color: "#3b82f6", description: "",
     category: "brokerage" as Bucket["category"],
   });
 
-  const loadPortfolio = useCallback(async () => {
-    const res = await fetch("/api/portfolio");
-    if (res.ok) setPortfolio(await res.json() as EnrichedPortfolio);
-    setLoading(false);
-  }, []);
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
-  useEffect(() => { loadPortfolio(); }, [loadPortfolio]);
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const res = await fetch("/api/portfolio");
+      if (res.ok && active) {
+        const data = await res.json() as EnrichedPortfolio;
+        if (active) setPortfolio(data);
+      }
+      if (active) setLoading(false);
+    }
+    load();
+    return () => { active = false; };
+  }, [refreshKey]);
 
   const brokerageBuckets = portfolio?.buckets.filter((b) => b.category === "brokerage") ?? [];
 
@@ -40,7 +49,7 @@ export default function BrokerageContent() {
       toast.success("Bucket created");
       setShowAddBucket(false);
       setNewBucket({ id: "", name: "", color: "#3b82f6", description: "", category: "brokerage" });
-      loadPortfolio();
+      refresh();
     } else {
       const err = await res.json() as { error?: string };
       toast.error(err.error ?? "Failed to create bucket");
@@ -101,7 +110,6 @@ export default function BrokerageContent() {
         </div>
       )}
 
-      {/* Add bucket modal */}
       {showAddBucket && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"

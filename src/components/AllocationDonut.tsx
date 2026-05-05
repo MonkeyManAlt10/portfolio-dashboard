@@ -1,8 +1,44 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { EnrichedBucket } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/format";
+
+interface TooltipItem {
+  name?: string;
+  value?: number;
+}
+
+// Defined at module level to satisfy react-hooks/static-components
+function AllocationTooltip({
+  active,
+  payload,
+  grandTotal,
+}: {
+  active?: boolean;
+  payload?: readonly TooltipItem[];
+  grandTotal: number | null;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  const val = item.value ?? 0;
+  const pct = grandTotal ? (val / grandTotal) * 100 : 0;
+  return (
+    <div
+      className="rounded-lg border px-3 py-2 text-sm"
+      style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}
+    >
+      <div className="font-medium text-slate-200">{item.name}</div>
+      <div className="font-mono tabular-nums text-slate-300 mt-0.5">
+        {formatCurrency(val)}
+      </div>
+      <div className="font-mono tabular-nums text-slate-500 text-xs">
+        {formatPercent(pct)} of total
+      </div>
+    </div>
+  );
+}
 
 interface AllocationDonutProps {
   buckets: EnrichedBucket[];
@@ -14,6 +50,14 @@ export default function AllocationDonut({ buckets, grandTotal }: AllocationDonut
     .filter((b) => b.totalValue && b.totalValue > 0)
     .map((b) => ({ name: b.name, value: b.totalValue!, color: b.color }));
 
+  const renderTooltip = useMemo(
+    () =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (props: any) =>
+        AllocationTooltip({ active: props.active, payload: props.payload, grandTotal }),
+    [grandTotal]
+  );
+
   if (data.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-slate-600 text-sm">
@@ -21,32 +65,6 @@ export default function AllocationDonut({ buckets, grandTotal }: AllocationDonut
       </div>
     );
   }
-
-  const CustomTooltip = ({
-    active,
-    payload,
-  }: {
-    active?: boolean;
-    payload?: Array<{ name: string; value: number; payload: { color: string } }>;
-  }) => {
-    if (!active || !payload?.length) return null;
-    const item = payload[0];
-    const pct = grandTotal ? (item.value / grandTotal) * 100 : 0;
-    return (
-      <div
-        className="rounded-lg border px-3 py-2 text-sm"
-        style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}
-      >
-        <div className="font-medium text-slate-200">{item.name}</div>
-        <div className="font-mono tabular-nums text-slate-300 mt-0.5">
-          {formatCurrency(item.value)}
-        </div>
-        <div className="font-mono tabular-nums text-slate-500 text-xs">
-          {formatPercent(pct)} of total
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="relative h-56">
@@ -65,11 +83,10 @@ export default function AllocationDonut({ buckets, grandTotal }: AllocationDonut
               <Cell key={idx} fill={entry.color} stroke="transparent" />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={renderTooltip} />
         </PieChart>
       </ResponsiveContainer>
 
-      {/* Center label */}
       {grandTotal !== null && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-xs text-slate-500 uppercase tracking-wider">Total</div>

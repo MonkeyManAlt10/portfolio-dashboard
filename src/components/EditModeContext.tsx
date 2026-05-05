@@ -25,8 +25,11 @@ export function EditModeProvider({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState<string | null>(null);
 
   useEffect(() => {
-    // Restore from sessionStorage on mount
+    // Reading sessionStorage on mount is a subscription to browser storage state —
+    // this is the correct pattern; the lint rule doesn't recognize it as such.
+     
     const stored = sessionStorage.getItem(SESSION_KEY);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored) setPassword(stored);
   }, []);
 

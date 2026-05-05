@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { formatCurrency, formatRelativeTime } from "@/lib/format";
 import type { EnrichedPortfolio, TradeLogEntry } from "@/lib/types";
 import { Download, Search } from "lucide-react";
@@ -11,21 +11,38 @@ export default function TradesContent() {
   const [loading, setLoading] = useState(true);
   const [filterBucket, setFilterBucket] = useState("all");
   const [filterAction, setFilterAction] = useState("all");
-  const [filterTicker, setFilterTicker] = useState("");
+  const [filterTicker, setFilterTicker] = useState("all");
   const [search, setSearch] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadPortfolio = useCallback(async () => {
-    const res = await fetch("/api/portfolio");
-    if (res.ok) setPortfolio(await res.json() as EnrichedPortfolio);
-    setLoading(false);
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const res = await fetch("/api/portfolio");
+      if (res.ok && active) {
+        const data = await res.json() as EnrichedPortfolio;
+        if (active) setPortfolio(data);
+      }
+      if (active) setLoading(false);
+    }
+    load();
+    return () => { active = false; };
+  }, [refreshKey]);
+
+  // Auto-refresh subscription — setState inside setInterval callback
+  useEffect(() => {
+    const id = setInterval(() => setRefreshKey((k) => k + 1), 60_000);
+    return () => clearInterval(id);
   }, []);
 
-  useEffect(() => { loadPortfolio(); }, [loadPortfolio]);
+  // Memoize derived arrays so they don't change identity every render
+  const trades = useMemo(() => portfolio?.tradeLog ?? [], [portfolio]);
+  const buckets = useMemo(() => portfolio?.buckets ?? [], [portfolio]);
 
-  const trades = portfolio?.tradeLog ?? [];
-  const buckets = portfolio?.buckets ?? [];
-
-  const uniqueTickers = useMemo(() => [...new Set(trades.map((t) => t.ticker))].sort(), [trades]);
+  const uniqueTickers = useMemo(
+    () => [...new Set(trades.map((t: TradeLogEntry) => t.ticker))].sort(),
+    [trades]
+  );
 
   const filtered = useMemo(() => {
     return trades.filter((t: TradeLogEntry) => {
@@ -34,15 +51,17 @@ export default function TradesContent() {
       if (filterTicker !== "all" && t.ticker !== filterTicker) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (!t.ticker.toLowerCase().includes(q) && !t.bucketId.toLowerCase().includes(q) && !(t.notes ?? "").toLowerCase().includes(q)) {
-          return false;
-        }
+        if (
+          !t.ticker.toLowerCase().includes(q) &&
+          !t.bucketId.toLowerCase().includes(q) &&
+          !(t.notes ?? "").toLowerCase().includes(q)
+        ) return false;
       }
       return true;
     });
   }, [trades, filterBucket, filterAction, filterTicker, search]);
 
-  function exportCsv() {
+  const exportCsv = useCallback(() => {
     const rows = [
       ["Date", "Bucket", "Action", "Ticker", "Shares", "Price", "Total", "Notes"],
       ...filtered.map((t: TradeLogEntry) => [
@@ -65,7 +84,7 @@ export default function TradesContent() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success("CSV exported");
-  }
+  }, [filtered, buckets]);
 
   const selectClass = "bg-[#0b1120] border border-[#1f2a44] rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -93,7 +112,6 @@ export default function TradesContent() {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600" />
@@ -141,7 +159,7 @@ export default function TradesContent() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ borderColor: "#1f2a44" }}>
+              <tbody>
                 {filtered.map((trade: TradeLogEntry, i) => (
                   <tr key={trade.id} className={`transition-colors hover:bg-white/[0.02] ${i % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
                     <td className="px-3 py-2.5">

@@ -10,6 +10,40 @@ import { Edit2, TrendingDown, Trash2, ChevronUp, ChevronDown } from "lucide-reac
 type SortKey = "ticker" | "shares" | "costBasis" | "currentPrice" | "currentValue" | "gainLoss";
 type SortDir = "asc" | "desc";
 
+// ─── Helpers defined at module level to avoid static-component lint errors ─────
+
+interface SortIconProps { col: SortKey; sortKey: SortKey; sortDir: SortDir }
+function SortIcon({ col, sortKey, sortDir }: SortIconProps) {
+  if (sortKey !== col) return <span className="w-3 h-3 inline-block" />;
+  return sortDir === "asc"
+    ? <ChevronUp className="w-3 h-3 inline-block" />
+    : <ChevronDown className="w-3 h-3 inline-block" />;
+}
+
+interface ThProps {
+  col: SortKey;
+  label: string;
+  right?: boolean;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (col: SortKey) => void;
+}
+function Th({ col, label, right = false, sortKey, sortDir, onSort }: ThProps) {
+  return (
+    <th
+      onClick={() => onSort(col)}
+      className={cn(
+        "px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-slate-300 transition-colors",
+        right && "text-right"
+      )}
+    >
+      {label} <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
+    </th>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+
 interface PositionsTableProps {
   positions: EnrichedPosition[];
   onEdit?: (ticker: string) => void;
@@ -52,27 +86,6 @@ export default function PositionsTable({
     return 0;
   });
 
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <span className="w-3 h-3 inline-block" />;
-    return sortDir === "asc"
-      ? <ChevronUp className="w-3 h-3 inline-block" />
-      : <ChevronDown className="w-3 h-3 inline-block" />;
-  }
-
-  function Th({ col, label, right = false }: { col: SortKey; label: string; right?: boolean }) {
-    return (
-      <th
-        onClick={() => toggleSort(col)}
-        className={cn(
-          "px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-slate-300 transition-colors",
-          right && "text-right"
-        )}
-      >
-        {label} <SortIcon col={col} />
-      </th>
-    );
-  }
-
   if (positions.length === 0) {
     return (
       <div className="text-center py-12 text-slate-600">
@@ -81,27 +94,30 @@ export default function PositionsTable({
     );
   }
 
+  const thProps = { sortKey, sortDir, onSort: toggleSort };
+
   return (
     <div className="overflow-x-auto rounded-xl border" style={{ borderColor: "#1f2a44" }}>
       <table className="w-full text-sm">
         <thead className="border-b" style={{ borderColor: "#1f2a44" }}>
           <tr style={{ backgroundColor: "#0b1120" }}>
-            <Th col="ticker" label="Ticker" />
-            <Th col="shares" label="Shares" right />
-            <Th col="costBasis" label="Cost Basis" right />
-            <Th col="currentPrice" label="Current" right />
-            <Th col="currentValue" label="Value" right />
-            <Th col="gainLoss" label="Gain/Loss" right />
+            <Th col="ticker" label="Ticker" {...thProps} />
+            <Th col="shares" label="Shares" right {...thProps} />
+            <Th col="costBasis" label="Cost Basis" right {...thProps} />
+            <Th col="currentPrice" label="Current" right {...thProps} />
+            <Th col="currentValue" label="Value" right {...thProps} />
+            <Th col="gainLoss" label="Gain/Loss" right {...thProps} />
             {isEditMode && <th className="px-3 py-2 text-xs text-slate-500 text-right">Actions</th>}
           </tr>
         </thead>
-        <tbody className="divide-y" style={{ borderColor: "#1f2a44" }}>
+        <tbody>
           {sorted.map((pos) => {
             const isPositive = (pos.gainLoss ?? 0) >= 0;
             return (
               <tr
                 key={pos.ticker}
-                className="transition-colors hover:bg-white/[0.02]"
+                className="border-t transition-colors hover:bg-white/[0.02]"
+                style={{ borderColor: "#1f2a44" }}
               >
                 <td className="px-3 py-3">
                   <div>

@@ -25,17 +25,23 @@ export default function RothContent() {
   const [sellPosition, setSellPosition] = useState<EnrichedPosition | null>(null);
   const [editingContrib, setEditingContrib] = useState(false);
   const [contribValue, setContribValue] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadPortfolio = useCallback(async () => {
-    const res = await fetch("/api/portfolio");
-    if (res.ok) {
-      const data = await res.json() as EnrichedPortfolio;
-      setPortfolio(data);
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const res = await fetch("/api/portfolio");
+      if (res.ok && active) {
+        const data = await res.json() as EnrichedPortfolio;
+        if (active) setPortfolio(data);
+      }
+      if (active) setLoading(false);
     }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { loadPortfolio(); }, [loadPortfolio]);
+    load();
+    return () => { active = false; };
+  }, [refreshKey]);
 
   const rothBucket = portfolio?.buckets.find((b) => b.id === ROTH_BUCKET_ID);
   const rothSettings = portfolio?.rothSettings;
@@ -50,7 +56,7 @@ export default function RothContent() {
     if (res.ok) {
       toast.success("Contribution updated");
       setEditingContrib(false);
-      loadPortfolio();
+      refresh();
     } else {
       toast.error("Failed to update");
     }
@@ -75,7 +81,6 @@ export default function RothContent() {
 
   return (
     <main className="max-w-[1400px] mx-auto px-6 py-8 w-full">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -92,7 +97,6 @@ export default function RothContent() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Cost Basis", value: formatCurrency(rothBucket.totalCostBasis) },
@@ -114,7 +118,6 @@ export default function RothContent() {
         ))}
       </div>
 
-      {/* Positions table */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-300">Positions</h2>
@@ -134,7 +137,6 @@ export default function RothContent() {
         />
       </div>
 
-      {/* Contribution tracker */}
       <div className="mb-8">
         <div className="rounded-xl border p-6" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
           <div className="flex items-center justify-between mb-4">
@@ -153,10 +155,7 @@ export default function RothContent() {
             <span className="text-slate-500 font-mono tabular-nums">of {formatCurrency(rothSettings.annualContributionLimit)}</span>
           </div>
           <div className="h-2 rounded-full bg-[#1f2a44] mb-3">
-            <div
-              className="h-2 rounded-full bg-blue-500 transition-all"
-              style={{ width: `${contribPct}%` }}
-            />
+            <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${contribPct}%` }} />
           </div>
           <div className={`text-sm font-mono tabular-nums ${remaining > 0 ? "text-emerald-400" : "text-slate-500"}`}>
             {remaining > 0 ? `${formatCurrency(remaining)} remaining for ${CURRENT_YEAR}` : `Limit reached for ${CURRENT_YEAR}`}
@@ -178,18 +177,16 @@ export default function RothContent() {
         </div>
       </div>
 
-      {/* Projection chart */}
       <div className="mb-8">
         <div className="rounded-xl border p-6" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
           <h2 className="text-sm font-semibold text-slate-300 mb-1">Growth Projection</h2>
           <p className="text-xs text-slate-500 mb-4">
-            Assumes {formatCurrency(rothSettings.annualContributionLimit)} added annually. Compound interest at 7%, 9%, and 11% annualized returns.
+            Assumes {formatCurrency(rothSettings.annualContributionLimit)} added annually. Compound interest at 7%, 9%, and 11%.
           </p>
           <ProjectionChart bucket={rothBucket} settings={rothSettings} />
         </div>
       </div>
 
-      {/* Insights */}
       <div className="rounded-xl border p-6" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
         <div className="flex items-center gap-2 mb-4">
           <Info className="w-4 h-4 text-blue-400" />
@@ -210,7 +207,7 @@ export default function RothContent() {
           </li>
           <li className="flex gap-2">
             <span className="text-blue-400 shrink-0">•</span>
-            Max out contributions every year ({formatCurrency(rothSettings.annualContributionLimit)}/year for {CURRENT_YEAR}). Time in market beats timing the market.
+            Max out contributions every year ({formatCurrency(rothSettings.annualContributionLimit)}/year for {CURRENT_YEAR}).
           </li>
         </ul>
       </div>
@@ -220,7 +217,7 @@ export default function RothContent() {
           buckets={portfolio.buckets as unknown as Bucket[]}
           defaultBucketId={ROTH_BUCKET_ID}
           onClose={() => setShowAddPosition(false)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
       {editPosition && (
@@ -228,7 +225,7 @@ export default function RothContent() {
           position={editPosition}
           bucketId={ROTH_BUCKET_ID}
           onClose={() => setEditPosition(null)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
       {sellPosition && (
@@ -236,7 +233,7 @@ export default function RothContent() {
           position={sellPosition}
           bucketId={ROTH_BUCKET_ID}
           onClose={() => setSellPosition(null)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
     </main>

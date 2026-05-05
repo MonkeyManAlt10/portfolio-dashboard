@@ -17,40 +17,47 @@ export default function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadPortfolio = useCallback(async () => {
-    try {
-      const res = await fetch("/api/portfolio");
-      if (!res.ok) throw new Error("Failed to load");
-      const data = await res.json() as EnrichedPortfolio;
-      setPortfolio(data);
-      setError(null);
-    } catch {
-      setError("Failed to load portfolio data.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
+  // Data-fetching effect — setState called inside async function, not synchronously
   useEffect(() => {
-    loadPortfolio();
-    const interval = setInterval(loadPortfolio, 60_000);
-    return () => clearInterval(interval);
-  }, [loadPortfolio]);
+    let active = true;
+    async function load() {
+      try {
+        const res = await fetch("/api/portfolio");
+        if (!res.ok || !active) return;
+        const data = await res.json() as EnrichedPortfolio;
+        if (active) { setPortfolio(data); setError(null); }
+      } catch {
+        if (active) setError("Failed to load portfolio data.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [refreshKey]);
+
+  // Auto-refresh subscription — setInterval callback, not synchronous setState
+  useEffect(() => {
+    const id = setInterval(() => setRefreshKey((k) => k + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   if (loading) return <DashboardSkeleton />;
   if (error || !portfolio) return (
     <main className="max-w-[1400px] mx-auto px-6 py-8">
       <div className="text-center py-20 text-slate-500">
         <p className="mb-4">{error ?? "No portfolio data"}</p>
-        <button onClick={loadPortfolio} className="text-blue-400 hover:underline text-sm">Retry</button>
+        <button onClick={refresh} className="text-blue-400 hover:underline text-sm">Retry</button>
       </div>
     </main>
   );
 
   const isPositive = (portfolio.grandTotalGainLoss ?? 0) >= 0;
 
-  // Top movers
   const allPositions = portfolio.buckets.flatMap((b) =>
     b.positions
       .filter((p) => p.gainLossPct != null)
@@ -59,8 +66,6 @@ export default function DashboardContent() {
   const byGain = [...allPositions].sort((a, b) => (b.gainLossPct ?? 0) - (a.gainLossPct ?? 0));
   const topGainers = byGain.slice(0, 3);
   const topLosers = byGain.slice(-3).reverse().filter((p) => (p.gainLossPct ?? 0) < 0);
-
-  // Recent trades
   const recentTrades = portfolio.tradeLog.slice(0, 5);
 
   return (
@@ -121,12 +126,10 @@ export default function DashboardContent() {
           <div className="rounded-xl border p-5" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
             <h2 className="text-sm font-semibold text-slate-300 mb-4">Allocation</h2>
             <AllocationDonut buckets={portfolio.buckets} grandTotal={portfolio.grandTotal} />
-            {/* Legend */}
             <div className="mt-4 space-y-1.5">
               {portfolio.buckets.map((b) => {
                 const pct = portfolio.grandTotal && b.totalValue
-                  ? (b.totalValue / portfolio.grandTotal) * 100
-                  : 0;
+                  ? (b.totalValue / portfolio.grandTotal) * 100 : 0;
                 return (
                   <div key={b.id} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5">
@@ -253,7 +256,6 @@ export default function DashboardContent() {
         )}
       </div>
 
-      {/* Footer */}
       <footer className="mt-12 pt-6 border-t text-center text-xs text-slate-700"
         style={{ borderColor: "#1f2a44" }}>
         Built with Next.js + Vercel · Live prices from Yahoo Finance
@@ -263,7 +265,7 @@ export default function DashboardContent() {
         <AddPositionModal
           buckets={portfolio.buckets as unknown as Bucket[]}
           onClose={() => setShowAddPosition(false)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
     </main>

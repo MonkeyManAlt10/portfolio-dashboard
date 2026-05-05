@@ -26,19 +26,27 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
   const [sellPosition, setSellPosition] = useState<EnrichedPosition | null>(null);
   const [editingMeta, setEditingMeta] = useState(false);
   const [metaForm, setMetaForm] = useState({ name: "", description: "", color: "#3b82f6" });
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadPortfolio = useCallback(async () => {
-    const res = await fetch("/api/portfolio");
-    if (res.ok) {
-      const data = await res.json() as EnrichedPortfolio;
-      setPortfolio(data);
-      const b = data.buckets.find((b) => b.id === bucketId);
-      if (b) setMetaForm({ name: b.name, description: b.description ?? "", color: b.color });
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const res = await fetch("/api/portfolio");
+      if (res.ok && active) {
+        const data = await res.json() as EnrichedPortfolio;
+        if (active) {
+          setPortfolio(data);
+          const b = data.buckets.find((b) => b.id === bucketId);
+          if (b) setMetaForm({ name: b.name, description: b.description ?? "", color: b.color });
+        }
+      }
+      if (active) setLoading(false);
     }
-    setLoading(false);
-  }, [bucketId]);
-
-  useEffect(() => { loadPortfolio(); }, [loadPortfolio]);
+    load();
+    return () => { active = false; };
+  }, [refreshKey, bucketId]);
 
   const bucket: EnrichedBucket | undefined = portfolio?.buckets.find((b) => b.id === bucketId);
 
@@ -50,7 +58,7 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
     if (res.ok) {
       toast.success("Saved");
       setEditingMeta(false);
-      loadPortfolio();
+      refresh();
     } else {
       const err = await res.json() as { error?: string };
       toast.error(err.error ?? "Failed");
@@ -89,12 +97,10 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
 
   return (
     <main className="max-w-[1400px] mx-auto px-6 py-8 w-full">
-      {/* Back */}
       <Link href="/brokerage" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 mb-6 transition-colors w-fit">
         <ChevronLeft className="w-4 h-4" /> Brokerage
       </Link>
 
-      {/* Header */}
       <div className="mb-8">
         {editingMeta ? (
           <div className="rounded-xl border p-5 space-y-3" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
@@ -159,7 +165,6 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
         )}
       </div>
 
-      {/* Stats strip */}
       {bucket.positions.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
@@ -183,7 +188,6 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
         </div>
       )}
 
-      {/* Positions */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-300">Positions</h2>
@@ -210,7 +214,6 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
         )}
       </div>
 
-      {/* Trade history */}
       {bucketTrades.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold text-slate-300 mb-3">Trade History</h2>
@@ -253,7 +256,7 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
           buckets={portfolio!.buckets as unknown as Bucket[]}
           defaultBucketId={bucketId}
           onClose={() => setShowAddPosition(false)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
       {editPosition && (
@@ -261,7 +264,7 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
           position={editPosition}
           bucketId={bucketId}
           onClose={() => setEditPosition(null)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
       {sellPosition && (
@@ -269,7 +272,7 @@ export default function BucketDetailContent({ bucketId }: BucketDetailContentPro
           position={sellPosition}
           bucketId={bucketId}
           onClose={() => setSellPosition(null)}
-          onSuccess={loadPortfolio}
+          onSuccess={refresh}
         />
       )}
     </main>
