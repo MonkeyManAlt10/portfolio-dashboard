@@ -12,9 +12,22 @@ interface YahooQuote {
   quoteType?: string;
 }
 
+const HARDCODED: Record<string, QuoteData> = {
+  SPAXX: {
+    price: 1.00,
+    currency: "USD",
+    marketState: "CLOSED",
+    lastUpdated: new Date().toISOString(),
+    isMutualFund: true,
+  },
+};
+
 async function fetchSingleQuote(ticker: string): Promise<QuoteData | null> {
+  if (HARDCODED[ticker]) return HARDCODED[ticker];
   try {
-    const yahooFinance = (await import("yahoo-finance2")).default;
+    const YahooFinanceClass = (await import("yahoo-finance2")).default;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const yahooFinance = new (YahooFinanceClass as any)({ suppressNotices: ["yahooSurvey"] });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const raw = await (yahooFinance.quote as (t: string) => Promise<any>)(ticker);
     const quote = raw as YahooQuote;

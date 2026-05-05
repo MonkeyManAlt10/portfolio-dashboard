@@ -13,7 +13,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 export function validatePassword(provided: string): boolean {
   const expected = process.env.EDIT_PASSWORD;
   if (!expected) return false;
-  if (!/^\d{8}$/.test(provided)) return false;
+  if (provided.length < 4) return false;
   return timingSafeEqual(provided, expected);
 }
 

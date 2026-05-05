@@ -10,10 +10,9 @@
       "positions": [
         {
           "ticker": "VTSAX",
-          "shares": 130.0,
-          "costBasis": 148.78,
-          "addedDate": "2024-01-01",
-          "notes": "Maxed Roth for 2 years; total ~$19,341 in VTSAX. UPDATE THIS to actual share count and cost basis."
+          "shares": 111.845002,
+          "costBasis": 172.26,
+          "addedDate": "2026-05-05"
         }
       ]
     },
@@ -23,7 +22,57 @@
       "category": "brokerage",
       "color": "#10b981",
       "description": "Long-horizon holdings outside the Roth. Set-and-forget capital.",
-      "positions": []
+      "positions": [
+        {
+          "ticker": "ABBV",
+          "shares": 1,
+          "costBasis": 206.11,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "AMZN",
+          "shares": 2,
+          "costBasis": 273.55,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "META",
+          "shares": 1.643001,
+          "costBasis": 604.96,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "FXAIX",
+          "shares": 0.214996,
+          "costBasis": 252.33,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "QQQ",
+          "shares": 1.209005,
+          "costBasis": 681.61,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "JPM",
+          "shares": 1.75,
+          "costBasis": 309.4,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "MSFT",
+          "shares": 0.412004,
+          "costBasis": 411.38,
+          "addedDate": "2026-05-05"
+        },
+        {
+          "ticker": "SPAXX",
+          "shares": 7327.46,
+          "costBasis": 1,
+          "addedDate": "2026-05-05",
+          "notes": "Cash settlement fund — Fidelity SPAXX"
+        }
+      ]
     },
     {
       "id": "fun-money",
@@ -54,9 +103,13 @@
   "rothSettings": {
     "annualContributionLimit": 7000,
     "contributedThisYear": 0,
-    "projectionRates": [0.07, 0.09, 0.11],
+    "projectionRates": [
+      0.07,
+      0.09,
+      0.11
+    ],
     "retirementAge": 65,
     "currentAge": 19
   },
-  "lastUpdated": "2026-05-05T00:00:00Z"
+  "lastUpdated": "2026-05-05T21:41:31.803Z"
 }
