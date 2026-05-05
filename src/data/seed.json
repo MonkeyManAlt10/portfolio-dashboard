@@ -1,0 +1,62 @@
+{
+  "owner": "Austin Krauskopf",
+  "buckets": [
+    {
+      "id": "roth-ira",
+      "name": "Roth IRA",
+      "category": "retirement",
+      "color": "#3b82f6",
+      "description": "Tax-advantaged retirement account. Long-horizon, set-and-forget.",
+      "positions": [
+        {
+          "ticker": "VTSAX",
+          "shares": 130.0,
+          "costBasis": 148.78,
+          "addedDate": "2024-01-01",
+          "notes": "Maxed Roth for 2 years; total ~$19,341 in VTSAX. UPDATE THIS to actual share count and cost basis."
+        }
+      ]
+    },
+    {
+      "id": "long-term-core",
+      "name": "Brokerage — Long-Term Core",
+      "category": "brokerage",
+      "color": "#10b981",
+      "description": "Long-horizon holdings outside the Roth. Set-and-forget capital.",
+      "positions": []
+    },
+    {
+      "id": "fun-money",
+      "name": "Brokerage — Fun Money",
+      "category": "brokerage",
+      "color": "#f59e0b",
+      "description": "Discretionary trading capital (~$2K). Higher risk tolerance, where I experiment.",
+      "positions": []
+    },
+    {
+      "id": "factor-top50-paper",
+      "name": "Factor Strategy — Top 50 (Paper)",
+      "category": "brokerage",
+      "color": "#8b5cf6",
+      "description": "Paper-traded factor strategy: $50 simulated per pick × 50 picks. Primary strategy. Live launch June 5, 2026.",
+      "positions": []
+    },
+    {
+      "id": "factor-top10-paper",
+      "name": "Factor Strategy — Top 10 (Paper)",
+      "category": "brokerage",
+      "color": "#ec4899",
+      "description": "Paper-traded concentrated comparison: $100 simulated per pick × 10 picks. Secondary, for comparison.",
+      "positions": []
+    }
+  ],
+  "tradeLog": [],
+  "rothSettings": {
+    "annualContributionLimit": 7000,
+    "contributedThisYear": 0,
+    "projectionRates": [0.07, 0.09, 0.11],
+    "retirementAge": 65,
+    "currentAge": 19
+  },
+  "lastUpdated": "2026-05-05T00:00:00Z"
+}
