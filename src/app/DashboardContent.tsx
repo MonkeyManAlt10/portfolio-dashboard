@@ -203,7 +203,11 @@ export default function DashboardContent() {
               ? <span>{formatPercent(brokerageBucket.todayChangePct)}</span>
               : undefined}
             subColor={todayIsPos ? "text-emerald-400" : "text-red-400"}
-            footnote="Roth excluded (mutual fund, prices daily)"
+            footnote={
+              brokerageBucket?.realizedToday
+                ? `Includes ${brokerageBucket.realizedToday >= 0 ? "+" : ""}${formatCurrency(brokerageBucket.realizedToday)} realized today`
+                : "Roth excluded (mutual fund, prices daily)"
+            }
           />
         </div>
         {portfolio.realizedYTD !== 0 && (

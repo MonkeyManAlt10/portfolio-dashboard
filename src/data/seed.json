@@ -27,14 +27,14 @@
         { "ticker": "ABBV",  "shares": 1,       "costBasis": 172.17, "addedDate": "2024-08-01", "notes": "ABBV — long-term holding" },
         { "ticker": "AMZN",  "shares": 2,       "costBasis": 200.03, "addedDate": "2024-08-01", "notes": "AMZN — long-term holding" },
         { "ticker": "BROS",  "shares": 6.766,   "costBasis": 53.27,  "addedDate": "2026-05-07" },
-        { "ticker": "META",  "shares": 1.643,   "costBasis": 608.44, "addedDate": "2025-08-15" },
+        { "ticker": "META",  "shares": 1.643,   "costBasis": 608.44, "addedDate": "2026-04-30" },
         { "ticker": "FXAIX", "shares": 0.215,   "costBasis": 175.95, "addedDate": "2024-06-01" },
         { "ticker": "SPAXX", "shares": 4091.62, "costBasis": 1.00,   "addedDate": "2024-01-01", "notes": "Cash settlement fund. Includes $591.59 unsettled from GRPN sale (settles 2026-05-09)." },
         { "ticker": "QQQ",   "shares": 1.209,   "costBasis": 496.27, "addedDate": "2024-06-01" },
         { "ticker": "JPM",   "shares": 1.75,    "costBasis": 207.31, "addedDate": "2024-06-01" },
         { "ticker": "MSFT",  "shares": 0.412,   "costBasis": 396.80, "addedDate": "2024-12-01" },
-        { "ticker": "NOW",   "shares": 20,      "costBasis": 88.95,  "addedDate": "2026-05-07" },
-        { "ticker": "UBER",  "shares": 15,      "costBasis": 79.20,  "addedDate": "2026-05-07" }
+        { "ticker": "NOW",   "shares": 20,      "costBasis": 88.95,  "addedDate": "2026-05-06" },
+        { "ticker": "UBER",  "shares": 15,      "costBasis": 79.20,  "addedDate": "2026-05-06" }
       ]
     }
   ],
@@ -116,8 +116,8 @@
       "price": 396.80
     },
     {
-      "id": "trade-meta-2025",
-      "timestamp": "2025-08-15T12:00:00.000Z",
+      "id": "trade-meta-2026-04-30",
+      "timestamp": "2026-04-30T12:00:00.000Z",
       "bucketId": "brokerage",
       "action": "BUY",
       "ticker": "META",
@@ -125,8 +125,8 @@
       "price": 608.44
     },
     {
-      "id": "trade-uber-2026-05-07",
-      "timestamp": "2026-05-07T12:00:00.000Z",
+      "id": "trade-uber-2026-05-06",
+      "timestamp": "2026-05-06T12:00:00.000Z",
       "bucketId": "brokerage",
       "action": "BUY",
       "ticker": "UBER",
@@ -134,8 +134,8 @@
       "price": 79.20
     },
     {
-      "id": "trade-now-2026-05-07",
-      "timestamp": "2026-05-07T12:00:00.000Z",
+      "id": "trade-now-2026-05-06",
+      "timestamp": "2026-05-06T12:00:00.000Z",
       "bucketId": "brokerage",
       "action": "BUY",
       "ticker": "NOW",
@@ -175,6 +175,7 @@
   "closedPositions": [
     {
       "id": "closed-grpn-2026",
+      "bucketId": "brokerage",
       "ticker": "GRPN",
       "shares": 32.092,
       "avgBuyPrice": 15.58,
@@ -193,7 +194,7 @@
     "annualContributionLimit": 7000,
     "contributedThisYear": 0,
     "totalContributed": 13000,
-    "projectionRates": [0.07, 0.09, 0.11],
+    "projectionRates": [0.087, 0.107, 0.127],
     "retirementAge": 65,
     "currentAge": 19
   },

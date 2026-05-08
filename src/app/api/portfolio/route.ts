@@ -9,7 +9,6 @@ export async function GET() {
   try {
     const portfolio = await getPortfolio();
 
-    // Collect all unique tickers
     const tickers = [
       ...new Set(
         portfolio.buckets.flatMap((b) => b.positions.map((p) => p.ticker))
@@ -20,6 +19,16 @@ export async function GET() {
     const marketState = getMarketState(quotes);
 
     const today = new Date();
+    const todayKey = today.toISOString().slice(0, 10);
+
+    const closedPositions = portfolio.closedPositions ?? [];
+    const realizedByBucket = new Map<string, { today: number; total: number }>();
+    for (const cp of closedPositions) {
+      const entry = realizedByBucket.get(cp.bucketId) ?? { today: 0, total: 0 };
+      entry.total += cp.realizedGain;
+      if (cp.lastSellDate?.slice(0, 10) === todayKey) entry.today += cp.realizedGain;
+      realizedByBucket.set(cp.bucketId, entry);
+    }
 
     let grandTotal = 0;
     let grandTotalCostBasis = 0;
@@ -40,12 +49,10 @@ export async function GET() {
         const gainLoss = currentValue != null ? currentValue - totalCost : null;
         const gainLossPct = gainLoss != null ? (gainLoss / totalCost) * 100 : null;
 
-        // Today's change per position
         const dayChangePerShare = quote?.todayChange ?? null;
         const dayChange = dayChangePerShare != null ? dayChangePerShare * pos.shares : null;
         const dayChangePct = quote?.todayChangePct ?? null;
 
-        // Days held
         const addedDate = new Date(pos.addedDate);
         const daysHeld = Math.floor((today.getTime() - addedDate.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -74,13 +81,17 @@ export async function GET() {
         };
       });
 
-      const totalGainLoss = bucketHasPrice ? bucketTotal - bucketCostBasis : null;
+      const realized = realizedByBucket.get(bucket.id) ?? { today: 0, total: 0 };
+
+      const unrealized = bucketHasPrice ? bucketTotal - bucketCostBasis : null;
+      const totalGainLoss = unrealized != null ? unrealized + realized.total : null;
       const totalGainLossPct =
         totalGainLoss != null && bucketCostBasis > 0
           ? (totalGainLoss / bucketCostBasis) * 100
           : null;
 
-      const todayChange = bucketHasDayChange ? bucketDayChange : null;
+      const hasTodayComponent = bucketHasDayChange || realized.today !== 0;
+      const todayChange = hasTodayComponent ? bucketDayChange + realized.today : null;
       const todayChangePct =
         todayChange != null && bucketTotal > 0
           ? (todayChange / (bucketTotal - todayChange)) * 100
@@ -101,17 +112,23 @@ export async function GET() {
         totalGainLossPct,
         todayChange,
         todayChangePct,
+        realizedToday: realized.today,
+        realizedTotal: realized.total,
       };
     });
 
-    const grandTotalGainLoss = hasAnyPrice ? grandTotal - grandTotalCostBasis : null;
+    const realizedTotalAll = closedPositions.reduce((s, p) => s + p.realizedGain, 0);
+    const realizedTodayAll = closedPositions.reduce(
+      (s, p) => s + (p.lastSellDate?.slice(0, 10) === todayKey ? p.realizedGain : 0),
+      0,
+    );
+
+    const grandUnrealized = hasAnyPrice ? grandTotal - grandTotalCostBasis : null;
+    const grandTotalGainLoss = grandUnrealized != null ? grandUnrealized + realizedTotalAll : null;
     const grandTotalGainLossPct =
       grandTotalGainLoss != null && grandTotalCostBasis > 0
         ? (grandTotalGainLoss / grandTotalCostBasis) * 100
         : null;
-
-    const closedPositions = portfolio.closedPositions ?? [];
-    const realizedYTD = closedPositions.reduce((sum, p) => sum + p.realizedGain, 0);
 
     const enriched: EnrichedPortfolio = {
       ...portfolio,
@@ -122,7 +139,8 @@ export async function GET() {
       grandTotalGainLoss,
       grandTotalGainLossPct,
       marketState,
-      realizedYTD,
+      realizedYTD: realizedTotalAll,
+      realizedToday: realizedTodayAll,
     };
 
     return NextResponse.json(enriched);

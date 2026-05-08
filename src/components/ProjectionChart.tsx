@@ -14,7 +14,10 @@ import { RothSettings, EnrichedBucket } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
-const RATE_LABELS = ["7%", "9%", "11%"];
+
+function rateKey(rate: number): string {
+  return `${(rate * 100).toFixed(1)}%`;
+}
 
 // Defined at module level to satisfy react-hooks/static-components
 interface ProjectionTooltipProps {
@@ -61,7 +64,7 @@ export default function ProjectionChart({ bucket, settings }: ProjectionChartPro
       for (let i = 0; i < y; i++) {
         value = value * (1 + rate) + settings.annualContributionLimit;
       }
-      point[`${Math.round(rate * 100)}%`] = Math.round(value);
+      point[rateKey(rate)] = Math.round(value);
     }
     data.push(point);
   }
@@ -96,11 +99,11 @@ export default function ProjectionChart({ bucket, settings }: ProjectionChartPro
           <Line
             key={rate}
             type="monotone"
-            dataKey={`${Math.round(rate * 100)}%`}
+            dataKey={rateKey(rate)}
             stroke={COLORS[idx]}
             strokeWidth={2}
             dot={false}
-            name={RATE_LABELS[idx] ?? `${Math.round(rate * 100)}%`}
+            name={rateKey(rate)}
           />
         ))}
       </LineChart>

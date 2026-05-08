@@ -181,7 +181,7 @@ export default function RothContent() {
         <div className="rounded-xl border p-6" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
           <h2 className="text-sm font-semibold text-slate-300 mb-1">Growth Projection</h2>
           <p className="text-xs text-slate-500 mb-4">
-            Assumes {formatCurrency(rothSettings.annualContributionLimit)} added annually. Compound interest at 7%, 9%, and 11%.
+            Assumes {formatCurrency(rothSettings.annualContributionLimit)} added annually. Compound interest at {rothSettings.projectionRates.map((r) => `${(r * 100).toFixed(1)}%`).join(", ")}.
           </p>
           <ProjectionChart bucket={rothBucket} settings={rothSettings} />
         </div>

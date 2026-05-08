@@ -28,6 +28,7 @@ export interface TradeLogEntry {
 
 export interface ClosedPosition {
   id: string;
+  bucketId: string;
   ticker: string;
   shares: number;
   avgBuyPrice: number;
@@ -82,6 +83,8 @@ export interface EnrichedBucket extends Omit<Bucket, "positions"> {
   totalGainLossPct: number | null;
   todayChange: number | null;
   todayChangePct: number | null;
+  realizedToday: number;
+  realizedTotal: number;
 }
 
 export interface EnrichedPortfolio extends Omit<PortfolioData, "buckets"> {
@@ -92,6 +95,7 @@ export interface EnrichedPortfolio extends Omit<PortfolioData, "buckets"> {
   grandTotalGainLossPct: number | null;
   marketState?: string;
   realizedYTD: number;
+  realizedToday: number;
 }
 
 export interface QuoteData {

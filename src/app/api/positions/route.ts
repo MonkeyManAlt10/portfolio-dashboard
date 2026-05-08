@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { getPortfolio, savePortfolio } from "@/lib/storage";
-import type { TradeLogEntry, Position } from "@/lib/types";
+import type { TradeLogEntry, Position, ClosedPosition } from "@/lib/types";
 import { randomUUID } from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -142,9 +142,12 @@ export async function DELETE(request: NextRequest) {
     bucket.positions[posIdx] = { ...pos, shares: pos.shares - sharesSold };
   }
 
+  const now = new Date();
+  const nowIso = now.toISOString();
+
   const tradeEntry: TradeLogEntry = {
     id: randomUUID(),
-    timestamp: new Date().toISOString(),
+    timestamp: nowIso,
     bucketId,
     action: "SELL",
     ticker: ticker.toUpperCase(),
@@ -153,6 +156,30 @@ export async function DELETE(request: NextRequest) {
     notes,
   };
   portfolio.tradeLog = [tradeEntry, ...portfolio.tradeLog];
+
+  const costBasisForLot = pos.costBasis * sharesSold;
+  const proceeds = salePrice * sharesSold;
+  const realizedGain = proceeds - costBasisForLot;
+  const gainPercent = costBasisForLot > 0 ? (realizedGain / costBasisForLot) * 100 : 0;
+  const firstBuyMs = new Date(pos.addedDate).getTime();
+  const heldDays = Math.floor((now.getTime() - firstBuyMs) / (1000 * 60 * 60 * 24));
+  const closed: ClosedPosition = {
+    id: randomUUID(),
+    bucketId,
+    ticker: ticker.toUpperCase(),
+    shares: sharesSold,
+    avgBuyPrice: pos.costBasis,
+    avgSellPrice: salePrice,
+    costBasis: costBasisForLot,
+    proceeds,
+    realizedGain,
+    gainPercent,
+    holdingPeriod: heldDays > 365 ? "long" : "short",
+    firstBuyDate: pos.addedDate,
+    lastSellDate: nowIso.slice(0, 10),
+    notes,
+  };
+  portfolio.closedPositions = [...(portfolio.closedPositions ?? []), closed];
 
   await savePortfolio(portfolio);
   return ok(bucket);
