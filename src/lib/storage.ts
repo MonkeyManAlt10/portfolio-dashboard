@@ -58,6 +58,8 @@ export async function getPortfolio(): Promise<PortfolioData> {
     await savePortfolio(seeded);
     return seeded;
   }
+  // Back-compat: ensure closedPositions exists
+  if (!raw.closedPositions) raw.closedPositions = [];
   return raw;
 }
 

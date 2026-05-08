@@ -1,10 +1,99 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { formatCurrency, formatRelativeTime } from "@/lib/format";
-import type { EnrichedPortfolio, TradeLogEntry } from "@/lib/types";
-import { Download, Search } from "lucide-react";
+import { formatCurrency } from "@/lib/format";
+import type { EnrichedPortfolio, TradeLogEntry, ClosedPosition } from "@/lib/types";
+import { Download, Search, Info } from "lucide-react";
 import toast from "react-hot-toast";
+
+function RealizedGainsSection({ positions }: { positions: ClosedPosition[] }) {
+  const shortTermTotal = positions.filter((p) => p.holdingPeriod === "short").reduce((s, p) => s + p.realizedGain, 0);
+  const longTermTotal = positions.filter((p) => p.holdingPeriod === "long").reduce((s, p) => s + p.realizedGain, 0);
+  const total = shortTermTotal + longTermTotal;
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-bold text-slate-100 mb-3">Realized Gains (YTD)</h2>
+      {positions.length === 0 ? (
+        <div className="rounded-xl border p-6 text-center text-slate-600 text-sm" style={{ backgroundColor: "#131c2f", borderColor: "#1f2a44" }}>
+          No closed positions this year.
+        </div>
+      ) : (
+        <>
+          <div className="rounded-xl border overflow-hidden mb-3" style={{ borderColor: "#1f2a44" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b" style={{ borderColor: "#1f2a44", backgroundColor: "#0b1120" }}>
+                  <tr>
+                    {["Ticker", "Shares", "Cost", "Proceeds", "Realized G/L", "%", "Term", "Bought", "Sold"].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {positions.map((p) => {
+                    const pos = p.realizedGain >= 0;
+                    return (
+                      <tr key={p.id} className="border-t hover:bg-white/[0.02] transition-colors" style={{ borderColor: "#1f2a44" }}>
+                        <td className="px-3 py-2.5 font-mono font-semibold text-slate-100">{p.ticker}</td>
+                        <td className="px-3 py-2.5 font-mono tabular-nums text-slate-400 text-xs">{p.shares}</td>
+                        <td className="px-3 py-2.5 font-mono tabular-nums text-slate-400 text-xs">{formatCurrency(p.costBasis)}</td>
+                        <td className="px-3 py-2.5 font-mono tabular-nums text-slate-300 text-xs">{formatCurrency(p.proceeds)}</td>
+                        <td className="px-3 py-2.5 font-mono tabular-nums text-xs">
+                          <span className={pos ? "text-emerald-400" : "text-red-400"}>
+                            {pos ? "+" : ""}{formatCurrency(p.realizedGain)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 font-mono tabular-nums text-xs">
+                          <span className={pos ? "text-emerald-400" : "text-red-400"}>
+                            {pos ? "+" : ""}{p.gainPercent.toFixed(2)}%
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-xs">
+                          <span className={`px-1.5 py-0.5 rounded-full font-medium ${
+                            p.holdingPeriod === "long"
+                              ? "bg-blue-500/15 text-blue-400"
+                              : "bg-amber-500/15 text-amber-400"
+                          }`}>
+                            {p.holdingPeriod === "long" ? "Long-term" : "Short-term"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-xs text-slate-500 font-mono">{p.firstBuyDate}</td>
+                        <td className="px-3 py-2.5 text-xs text-slate-500 font-mono">{p.lastSellDate}</td>
+                      </tr>
+                    );
+                  })}
+                  {/* Totals row */}
+                  <tr className="border-t" style={{ borderColor: "#1f2a44", backgroundColor: "#0b1120" }}>
+                    <td colSpan={4} className="px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Total</td>
+                    <td className="px-3 py-2.5 font-mono tabular-nums text-xs font-semibold">
+                      <span className={total >= 0 ? "text-emerald-400" : "text-red-400"}>
+                        {total >= 0 ? "+" : ""}{formatCurrency(total)}
+                      </span>
+                    </td>
+                    <td colSpan={4} className="px-3 py-2.5 text-xs text-slate-600">
+                      Short-term: {shortTermTotal >= 0 ? "+" : ""}{formatCurrency(shortTermTotal)}
+                      {longTermTotal !== 0 && ` · Long-term: ${longTermTotal >= 0 ? "+" : ""}${formatCurrency(longTermTotal)}`}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Tax note */}
+          <div className="flex items-start gap-2 text-xs text-slate-600 rounded-lg border p-3" style={{ borderColor: "#1f2a44", backgroundColor: "#0b1120" }}>
+            <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-500" />
+            <span>
+              Short-term gains are taxed as ordinary income. Long-term gains (held 1+ year) are taxed at 0%, 15%, or 20% based on your income.{" "}
+              <strong className="text-slate-500">Fidelity is the source of truth at tax time — this is for your reference only.</strong>
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function TradesContent() {
   const [portfolio, setPortfolio] = useState<EnrichedPortfolio | null>(null);
@@ -18,7 +107,7 @@ export default function TradesContent() {
   useEffect(() => {
     let active = true;
     async function load() {
-      const res = await fetch("/api/portfolio");
+      const res = await fetch(`/api/portfolio?_=${refreshKey}`);
       if (res.ok && active) {
         const data = await res.json() as EnrichedPortfolio;
         if (active) setPortfolio(data);
@@ -29,15 +118,20 @@ export default function TradesContent() {
     return () => { active = false; };
   }, [refreshKey]);
 
-  // Auto-refresh subscription — setState inside setInterval callback
   useEffect(() => {
     const id = setInterval(() => setRefreshKey((k) => k + 1), 60_000);
     return () => clearInterval(id);
   }, []);
 
-  // Memoize derived arrays so they don't change identity every render
+  useEffect(() => {
+    const handler = () => setRefreshKey((k) => k + 1);
+    window.addEventListener("portfolio:refresh", handler);
+    return () => window.removeEventListener("portfolio:refresh", handler);
+  }, []);
+
   const trades = useMemo(() => portfolio?.tradeLog ?? [], [portfolio]);
   const buckets = useMemo(() => portfolio?.buckets ?? [], [portfolio]);
+  const closedPositions = useMemo(() => portfolio?.closedPositions ?? [], [portfolio]);
 
   const uniqueTickers = useMemo(
     () => [...new Set(trades.map((t: TradeLogEntry) => t.ticker))].sort(),
@@ -96,10 +190,13 @@ export default function TradesContent() {
 
   return (
     <main className="max-w-[1400px] mx-auto px-6 py-8 w-full">
-      <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+      {/* Realized gains */}
+      <RealizedGainsSection positions={closedPositions} />
+
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Trade Log</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h2 className="text-lg font-bold text-slate-100">Trade Log</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
             {filtered.length} of {trades.length} entries
           </p>
         </div>
@@ -161,10 +258,9 @@ export default function TradesContent() {
               </thead>
               <tbody>
                 {filtered.map((trade: TradeLogEntry, i) => (
-                  <tr key={trade.id} className={`transition-colors hover:bg-white/[0.02] ${i % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
+                  <tr key={trade.id} className={`transition-colors hover:bg-white/[0.02] ${i % 2 !== 0 ? "bg-white/[0.01]" : ""}`}>
                     <td className="px-3 py-2.5">
                       <div className="text-xs text-slate-300 font-mono">{new Date(trade.timestamp).toLocaleDateString()}</div>
-                      <div className="text-xs text-slate-600 font-mono">{formatRelativeTime(trade.timestamp)}</div>
                     </td>
                     <td className="px-3 py-2.5 text-xs text-slate-400 max-w-[160px] truncate">
                       {buckets.find((b) => b.id === trade.bucketId)?.name ?? trade.bucketId}

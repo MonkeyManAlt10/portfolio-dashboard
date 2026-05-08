@@ -26,9 +26,26 @@ export interface TradeLogEntry {
   notes?: string;
 }
 
+export interface ClosedPosition {
+  id: string;
+  ticker: string;
+  shares: number;
+  avgBuyPrice: number;
+  avgSellPrice: number;
+  costBasis: number;
+  proceeds: number;
+  realizedGain: number;
+  gainPercent: number;
+  holdingPeriod: "short" | "long";
+  firstBuyDate: string;
+  lastSellDate: string;
+  notes?: string;
+}
+
 export interface RothSettings {
   annualContributionLimit: number;
   contributedThisYear: number;
+  totalContributed: number;
   projectionRates: number[];
   retirementAge: number;
   currentAge: number;
@@ -38,6 +55,7 @@ export interface PortfolioData {
   owner: string;
   buckets: Bucket[];
   tradeLog: TradeLogEntry[];
+  closedPositions: ClosedPosition[];
   rothSettings: RothSettings;
   lastUpdated: string;
 }
@@ -48,6 +66,9 @@ export interface EnrichedPosition extends Position {
   currentValue: number | null;
   gainLoss: number | null;
   gainLossPct: number | null;
+  dayChange: number | null;
+  dayChangePct: number | null;
+  daysHeld: number;
   marketState?: string;
   isMutualFund?: boolean;
   lastPriceDate?: string;
@@ -59,6 +80,8 @@ export interface EnrichedBucket extends Omit<Bucket, "positions"> {
   totalCostBasis: number;
   totalGainLoss: number | null;
   totalGainLossPct: number | null;
+  todayChange: number | null;
+  todayChangePct: number | null;
 }
 
 export interface EnrichedPortfolio extends Omit<PortfolioData, "buckets"> {
@@ -68,6 +91,7 @@ export interface EnrichedPortfolio extends Omit<PortfolioData, "buckets"> {
   grandTotalGainLoss: number | null;
   grandTotalGainLossPct: number | null;
   marketState?: string;
+  realizedYTD: number;
 }
 
 export interface QuoteData {
@@ -77,4 +101,6 @@ export interface QuoteData {
   lastUpdated: string;
   isMutualFund: boolean;
   lastPriceDate?: string;
+  todayChange?: number;
+  todayChangePct?: number;
 }

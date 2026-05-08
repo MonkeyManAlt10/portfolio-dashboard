@@ -19,6 +19,8 @@ export async function GET() {
     const quotes = tickers.length > 0 ? await batchQuote(tickers) : {};
     const marketState = getMarketState(quotes);
 
+    const today = new Date();
+
     let grandTotal = 0;
     let grandTotalCostBasis = 0;
     let hasAnyPrice = false;
@@ -27,6 +29,8 @@ export async function GET() {
       let bucketTotal = 0;
       let bucketCostBasis = 0;
       let bucketHasPrice = false;
+      let bucketDayChange = 0;
+      let bucketHasDayChange = false;
 
       const enrichedPositions: EnrichedPosition[] = bucket.positions.map((pos) => {
         const quote = quotes[pos.ticker];
@@ -36,10 +40,23 @@ export async function GET() {
         const gainLoss = currentValue != null ? currentValue - totalCost : null;
         const gainLossPct = gainLoss != null ? (gainLoss / totalCost) * 100 : null;
 
+        // Today's change per position
+        const dayChangePerShare = quote?.todayChange ?? null;
+        const dayChange = dayChangePerShare != null ? dayChangePerShare * pos.shares : null;
+        const dayChangePct = quote?.todayChangePct ?? null;
+
+        // Days held
+        const addedDate = new Date(pos.addedDate);
+        const daysHeld = Math.floor((today.getTime() - addedDate.getTime()) / (1000 * 60 * 60 * 24));
+
         bucketCostBasis += totalCost;
         if (currentValue != null) {
           bucketTotal += currentValue;
           bucketHasPrice = true;
+        }
+        if (dayChange != null && !quote?.isMutualFund) {
+          bucketDayChange += dayChange;
+          bucketHasDayChange = true;
         }
 
         return {
@@ -48,6 +65,9 @@ export async function GET() {
           currentValue,
           gainLoss,
           gainLossPct,
+          dayChange,
+          dayChangePct,
+          daysHeld,
           marketState: quote?.marketState,
           isMutualFund: quote?.isMutualFund,
           lastPriceDate: quote?.lastPriceDate,
@@ -58,6 +78,12 @@ export async function GET() {
       const totalGainLossPct =
         totalGainLoss != null && bucketCostBasis > 0
           ? (totalGainLoss / bucketCostBasis) * 100
+          : null;
+
+      const todayChange = bucketHasDayChange ? bucketDayChange : null;
+      const todayChangePct =
+        todayChange != null && bucketTotal > 0
+          ? (todayChange / (bucketTotal - todayChange)) * 100
           : null;
 
       grandTotalCostBasis += bucketCostBasis;
@@ -73,6 +99,8 @@ export async function GET() {
         totalCostBasis: bucketCostBasis,
         totalGainLoss,
         totalGainLossPct,
+        todayChange,
+        todayChangePct,
       };
     });
 
@@ -82,14 +110,19 @@ export async function GET() {
         ? (grandTotalGainLoss / grandTotalCostBasis) * 100
         : null;
 
+    const closedPositions = portfolio.closedPositions ?? [];
+    const realizedYTD = closedPositions.reduce((sum, p) => sum + p.realizedGain, 0);
+
     const enriched: EnrichedPortfolio = {
       ...portfolio,
+      closedPositions,
       buckets: enrichedBuckets,
       grandTotal: hasAnyPrice ? grandTotal : null,
       grandTotalCostBasis,
       grandTotalGainLoss,
       grandTotalGainLossPct,
       marketState,
+      realizedYTD,
     };
 
     return NextResponse.json(enriched);

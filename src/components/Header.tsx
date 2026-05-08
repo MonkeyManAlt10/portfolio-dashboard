@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Edit3, LogOut, TrendingUp, Menu, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Edit3, LogOut, TrendingUp, Menu, X, RefreshCw } from "lucide-react";
 import { useEditMode } from "./EditModeContext";
 import PasswordModal from "./PasswordModal";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface HeaderProps {
   lastUpdated?: string;
@@ -19,6 +20,8 @@ const NAV_LINKS = [
   { href: "/brokerage", label: "Brokerage", shortcut: "g b" },
   { href: "/trades", label: "Trade Log", shortcut: "g t" },
 ];
+
+const REFRESH_THROTTLE_MS = 10_000;
 
 function MarketBadge({ state }: { state?: string }) {
   if (!state) return null;
@@ -42,6 +45,25 @@ export default function Header({ lastUpdated, marketState }: HeaderProps) {
   const { isEditMode, exitEditMode } = useEditMode();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const lastRefreshRef = useRef<number>(0);
+
+  async function handleRefresh() {
+    const now = Date.now();
+    if (now - lastRefreshRef.current < REFRESH_THROTTLE_MS) return;
+    lastRefreshRef.current = now;
+
+    setIsRefreshing(true);
+    try {
+      await fetch(`/api/portfolio?_=${now}`);
+      window.dispatchEvent(new CustomEvent("portfolio:refresh"));
+      toast.success("Prices refreshed");
+    } catch {
+      toast.error("Refresh failed");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
   return (
     <>
@@ -93,6 +115,18 @@ export default function Header({ lastUpdated, marketState }: HeaderProps) {
                 </span>
               </span>
             )}
+
+            {/* Refresh button */}
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors hover:bg-white/5 disabled:opacity-50"
+              style={{ borderColor: "#1f2a44", color: "#64748b" }}
+              title="Refresh prices (max 1/10s)"
+            >
+              <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
 
             {isEditMode ? (
               <div className="flex items-center gap-2">

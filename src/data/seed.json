@@ -6,110 +6,174 @@
       "name": "Roth IRA",
       "category": "retirement",
       "color": "#3b82f6",
-      "description": "Tax-advantaged retirement account. Long-horizon, set-and-forget.",
+      "description": "Tax-advantaged retirement account.",
       "positions": [
         {
           "ticker": "VTSAX",
-          "shares": 111.845002,
-          "costBasis": 172.26,
-          "addedDate": "2026-05-05"
+          "shares": 110.837,
+          "costBasis": 117.29,
+          "addedDate": "2024-01-01",
+          "notes": "Total contributions $13,000 across 2 years; current gain $6,431.95"
         }
       ]
     },
     {
-      "id": "long-term-core",
-      "name": "Brokerage — Long-Term Core",
+      "id": "brokerage",
+      "name": "Brokerage",
       "category": "brokerage",
       "color": "#10b981",
-      "description": "Long-horizon holdings outside the Roth. Set-and-forget capital.",
+      "description": "Fidelity Individual brokerage account.",
       "positions": [
-        {
-          "ticker": "ABBV",
-          "shares": 1,
-          "costBasis": 206.11,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "AMZN",
-          "shares": 2,
-          "costBasis": 273.55,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "META",
-          "shares": 1.643001,
-          "costBasis": 604.96,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "FXAIX",
-          "shares": 0.214996,
-          "costBasis": 252.33,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "QQQ",
-          "shares": 1.209005,
-          "costBasis": 681.61,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "JPM",
-          "shares": 1.75,
-          "costBasis": 309.4,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "MSFT",
-          "shares": 0.412004,
-          "costBasis": 411.38,
-          "addedDate": "2026-05-05"
-        },
-        {
-          "ticker": "SPAXX",
-          "shares": 7327.46,
-          "costBasis": 1,
-          "addedDate": "2026-05-05",
-          "notes": "Cash settlement fund — Fidelity SPAXX"
-        }
+        { "ticker": "BROS",  "shares": 6.766,   "costBasis": 53.27,  "addedDate": "2026-05-07" },
+        { "ticker": "META",  "shares": 1.643,   "costBasis": 608.44, "addedDate": "2025-08-15" },
+        { "ticker": "FXAIX", "shares": 0.215,   "costBasis": 175.95, "addedDate": "2024-06-01" },
+        { "ticker": "SPAXX", "shares": 3500.03, "costBasis": 1.00,   "addedDate": "2024-01-01", "notes": "Cash settlement fund" },
+        { "ticker": "QQQ",   "shares": 1.209,   "costBasis": 496.27, "addedDate": "2024-06-01" },
+        { "ticker": "JPM",   "shares": 1.75,    "costBasis": 207.31, "addedDate": "2024-06-01" },
+        { "ticker": "MSFT",  "shares": 0.412,   "costBasis": 396.80, "addedDate": "2024-12-01" },
+        { "ticker": "NOW",   "shares": 20,      "costBasis": 88.95,  "addedDate": "2026-05-07" },
+        { "ticker": "UBER",  "shares": 15,      "costBasis": 79.20,  "addedDate": "2026-05-07" }
       ]
-    },
-    {
-      "id": "fun-money",
-      "name": "Brokerage — Fun Money",
-      "category": "brokerage",
-      "color": "#f59e0b",
-      "description": "Discretionary trading capital (~$2K). Higher risk tolerance, where I experiment.",
-      "positions": []
-    },
-    {
-      "id": "factor-top50-paper",
-      "name": "Factor Strategy — Top 50 (Paper)",
-      "category": "brokerage",
-      "color": "#8b5cf6",
-      "description": "Paper-traded factor strategy: $50 simulated per pick × 50 picks. Primary strategy. Live launch June 5, 2026.",
-      "positions": []
-    },
-    {
-      "id": "factor-top10-paper",
-      "name": "Factor Strategy — Top 10 (Paper)",
-      "category": "brokerage",
-      "color": "#ec4899",
-      "description": "Paper-traded concentrated comparison: $100 simulated per pick × 10 picks. Secondary, for comparison.",
-      "positions": []
     }
   ],
-  "tradeLog": [],
+  "tradeLog": [
+    {
+      "id": "trade-vtsax-2024",
+      "timestamp": "2024-01-01T12:00:00.000Z",
+      "bucketId": "roth-ira",
+      "action": "BUY",
+      "ticker": "VTSAX",
+      "shares": 110.837,
+      "price": 117.29,
+      "notes": "Roth IRA — represents $13,000 total contributions"
+    },
+    {
+      "id": "trade-spaxx-2024",
+      "timestamp": "2024-01-01T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "SPAXX",
+      "shares": 3500.03,
+      "price": 1.00,
+      "notes": "Initial cash settlement fund deposit"
+    },
+    {
+      "id": "trade-fxaix-2024",
+      "timestamp": "2024-06-01T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "FXAIX",
+      "shares": 0.215,
+      "price": 175.95
+    },
+    {
+      "id": "trade-jpm-2024",
+      "timestamp": "2024-06-01T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "JPM",
+      "shares": 1.75,
+      "price": 207.31
+    },
+    {
+      "id": "trade-qqq-2024",
+      "timestamp": "2024-06-01T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "QQQ",
+      "shares": 1.209,
+      "price": 496.27
+    },
+    {
+      "id": "trade-msft-2024",
+      "timestamp": "2024-12-01T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "MSFT",
+      "shares": 0.412,
+      "price": 396.80
+    },
+    {
+      "id": "trade-meta-2025",
+      "timestamp": "2025-08-15T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "META",
+      "shares": 1.643,
+      "price": 608.44
+    },
+    {
+      "id": "trade-uber-2026-05-07",
+      "timestamp": "2026-05-07T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "UBER",
+      "shares": 15,
+      "price": 79.20
+    },
+    {
+      "id": "trade-now-2026-05-07",
+      "timestamp": "2026-05-07T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "NOW",
+      "shares": 20,
+      "price": 88.95
+    },
+    {
+      "id": "trade-bros-2026-05-07",
+      "timestamp": "2026-05-07T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "BROS",
+      "shares": 6.766,
+      "price": 53.27
+    },
+    {
+      "id": "trade-grpn-buy-2026-05-07",
+      "timestamp": "2026-05-07T12:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "BUY",
+      "ticker": "GRPN",
+      "shares": 32.092,
+      "price": 15.58,
+      "notes": "Avg buy price; see closedPositions. Dates approximate."
+    },
+    {
+      "id": "trade-grpn-sell-2026-05-08",
+      "timestamp": "2026-05-08T10:00:00.000Z",
+      "bucketId": "brokerage",
+      "action": "SELL",
+      "ticker": "GRPN",
+      "shares": 32.092,
+      "price": 18.43,
+      "notes": "Avg sell price; full position closed. 1-day hold."
+    }
+  ],
+  "closedPositions": [
+    {
+      "id": "closed-grpn-2026",
+      "ticker": "GRPN",
+      "shares": 32.092,
+      "avgBuyPrice": 15.58,
+      "avgSellPrice": 18.43,
+      "costBasis": 500.00,
+      "proceeds": 591.59,
+      "realizedGain": 91.59,
+      "gainPercent": 18.318,
+      "holdingPeriod": "short",
+      "firstBuyDate": "2026-05-07",
+      "lastSellDate": "2026-05-08",
+      "notes": "1-day hold; short-term gain"
+    }
+  ],
   "rothSettings": {
     "annualContributionLimit": 7000,
     "contributedThisYear": 0,
-    "projectionRates": [
-      0.07,
-      0.09,
-      0.11
-    ],
+    "totalContributed": 13000,
+    "projectionRates": [0.07, 0.09, 0.11],
     "retirementAge": 65,
     "currentAge": 19
   },
-  "lastUpdated": "2026-05-05T21:41:31.803Z"
+  "lastUpdated": "2026-05-08T00:00:00.000Z"
 }

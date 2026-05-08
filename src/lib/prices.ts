@@ -9,6 +9,8 @@ interface YahooQuote {
   currency?: string;
   marketState?: string;
   regularMarketTime?: Date | number | string;
+  regularMarketChange?: number;
+  regularMarketChangePercent?: number;
   quoteType?: string;
 }
 
@@ -19,6 +21,8 @@ const HARDCODED: Record<string, QuoteData> = {
     marketState: "CLOSED",
     lastUpdated: new Date().toISOString(),
     isMutualFund: true,
+    todayChange: 0,
+    todayChangePct: 0,
   },
 };
 
@@ -51,6 +55,8 @@ async function fetchSingleQuote(ticker: string): Promise<QuoteData | null> {
       lastUpdated: new Date().toISOString(),
       isMutualFund,
       lastPriceDate,
+      todayChange: quote.regularMarketChange ?? 0,
+      todayChangePct: quote.regularMarketChangePercent ?? 0,
     };
   } catch {
     return null;
