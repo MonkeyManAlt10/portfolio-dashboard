@@ -29,7 +29,7 @@
         { "ticker": "BROS",  "shares": 6.766,   "costBasis": 53.27,  "addedDate": "2026-05-07" },
         { "ticker": "META",  "shares": 1.643,   "costBasis": 608.44, "addedDate": "2025-08-15" },
         { "ticker": "FXAIX", "shares": 0.215,   "costBasis": 175.95, "addedDate": "2024-06-01" },
-        { "ticker": "SPAXX", "shares": 3500.03, "costBasis": 1.00,   "addedDate": "2024-01-01", "notes": "Cash settlement fund" },
+        { "ticker": "SPAXX", "shares": 4091.62, "costBasis": 1.00,   "addedDate": "2024-01-01", "notes": "Cash settlement fund. Includes $591.59 unsettled from GRPN sale (settles 2026-05-09)." },
         { "ticker": "QQQ",   "shares": 1.209,   "costBasis": 496.27, "addedDate": "2024-06-01" },
         { "ticker": "JPM",   "shares": 1.75,    "costBasis": 207.31, "addedDate": "2024-06-01" },
         { "ticker": "MSFT",  "shares": 0.412,   "costBasis": 396.80, "addedDate": "2024-12-01" },
