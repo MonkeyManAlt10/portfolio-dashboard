@@ -51,9 +51,13 @@ async function fileSet(data: PortfolioData): Promise<void> {
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 export async function getPortfolio(): Promise<PortfolioData> {
+  // Bump `seedVersion` in src/data/seed.json on schema or initial-data changes;
+  // any stored data with a lower (or missing) version is replaced on next read.
+  const seedVersion = (seedData as PortfolioData).seedVersion ?? 0;
   const raw = hasKvConfig() ? await kvGet() : await fileGet();
-  if (!raw) {
-    // First run: seed from seed.json
+  const storedVersion = raw?.seedVersion ?? 0;
+
+  if (!raw || storedVersion < seedVersion) {
     const seeded = { ...(seedData as PortfolioData) };
     await savePortfolio(seeded);
     return seeded;

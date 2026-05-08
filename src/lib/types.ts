@@ -53,6 +53,7 @@ export interface RothSettings {
 }
 
 export interface PortfolioData {
+  seedVersion?: number;
   owner: string;
   buckets: Bucket[];
   tradeLog: TradeLogEntry[];

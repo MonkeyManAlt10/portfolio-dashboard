@@ -159,7 +159,7 @@ export default function DashboardContent() {
   // Today's movers — individual stocks, skip SPAXX, sorted by today's $ change
   const allPositions = portfolio.buckets.flatMap((b) =>
     b.positions
-      .filter((p) => p.ticker !== "SPAXX" && p.dayChange != null)
+      .filter((p) => p.ticker !== "SPAXX" && p.ticker !== "VTSAX" && p.dayChange != null)
       .map((p) => ({ ...p, bucketName: b.name }))
   );
   const byDayChange = [...allPositions].sort((a, b) => (b.dayChange ?? 0) - (a.dayChange ?? 0));
